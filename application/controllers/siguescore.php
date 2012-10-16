@@ -13,13 +13,14 @@ class Siguescore extends CI_Controller {
 	function process($request)
 	{
 		$parameters = $request->output_parameters();
-
+                
 		$response = array(
                                 array(
                                     'you_said'  => $parameters['0'],
                                     'i_respond' => 'Not bad at all.',
-                                    'user' => $parameters['1'],
-                                    'pass' => $parameters['2']),
+                                    'user' => $parameters[sizeof($parameters)-2],
+                                    'pass' => $parameters[sizeof($parameters)-1]
+                                    ),
                                 'struct');
 
 		return $this->xmlrpc->send_response($response);
