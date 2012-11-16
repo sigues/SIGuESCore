@@ -6,34 +6,55 @@ class Siguescore extends CI_Controller {
 	{
 		$config['functions']['Greetings'] = array('function' => 'Siguescore.process');
 		$config['functions']['getUsuarioByUserPass'] = array('function' => 'Siguescore.getUsuarioByUserPass');
-		$this->xmlrpcs->initialize($config);
-		$this->xmlrpcs->serve();
-                $parameters = $request->output_parameters();
+		$config['debug'] = true;
+                $this->xmlrpcs->initialize($config);
+		$parameters = $request->output_parameters();
                 $user=$parameters[sizeof($parameters)-2];
                 $pass=$parameters[sizeof($parameters)-1];
                 $appInfo = $this->loginCore($user,$pass);
                 if($appInfo != false){
-                    $db['siguesapp']['hostname'] = 'localhost';
-                    $db['siguesapp']['username'] = $appInfo["db_usuario"];
-                    $db['siguesapp']['password'] = $appInfo["db_contrasena"];
-                    $db['siguesapp']['database'] = $appInfo["db_base"];
-                    $db['siguesapp']['hostname'] = 'localhost';
-                    $db['siguesapp']['dbdriver'] = 'mysql';
-                    $db['siguesapp']['dbprefix'] = '';
-                    $db['siguesapp']['pconnect'] = TRUE;
-                    $db['siguesapp']['db_debug'] = TRUE;
-                    $db['siguesapp']['cache_on'] = FALSE;
-                    $db['siguesapp']['cachedir'] = '';
-                    $db['siguesapp']['char_set'] = 'utf8';
-                    $db['siguesapp']['dbcollat'] = 'utf8_general_ci';
-                    $db['siguesapp']['swap_pre'] = '';
-                    $db['siguesapp']['autoinit'] = TRUE;
-                    $db['siguesapp']['stricton'] = FALSE;
-                    $this->load->database('legacy', true);
+                    $this->initCore($appInfo);
                 }else{
                     return false;
                 }
 	}
+
+        /*
+         * Método que inicia el core desde el explorador, solo para pruebas cuando no se usa cliente
+         */
+
+        function initWeb(){
+            $usuario = $this->uri->segment(2);
+            $contrasena = md5($this->uri->segment(3));
+            $appInfo = $this->loginCore($usuario,$contrasena);
+            if($appInfo != false){
+                $this->initCore($appInfo);
+            }else{
+                return false;
+            }
+        }
+
+        function initCore($appInfo){
+            $db['hostname'] = 'localhost';
+            $db['username'] = $appInfo["db_usuario"];
+            $db['password'] = $appInfo["db_contrasena"];
+            $db['database'] = $appInfo["db_base"];
+            $db['hostname'] = 'localhost';
+            $db['dbdriver'] = 'mysql';
+            $db['dbprefix'] = '';
+            $db['pconnect'] = TRUE;
+            $db['db_debug'] = TRUE;
+            $db['cache_on'] = FALSE;
+            $db['cachedir'] = '';
+            $db['char_set'] = 'utf8';
+            $db['dbcollat'] = 'utf8_general_ci';
+            $db['swap_pre'] = '';
+            $db['autoinit'] = TRUE;
+            $db['stricton'] = FALSE;
+            $this->load->database($db);
+            var_dump($db);
+            //$this->xmlrpcs->serve();
+        }
 
         /*
          * Esta función es para hacer el login de la aplicación en el core, no el login del usuario en la aplicación
