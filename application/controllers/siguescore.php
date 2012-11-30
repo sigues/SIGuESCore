@@ -24,21 +24,25 @@ class Siguescore extends CI_Controller {
          */
 
         function initWeb(){
-            $usuario = $this->uri->segment(2);
-            $contrasena = md5($this->uri->segment(3));
+            $usuario = $this->uri->segment(3);
+            $contrasena = md5($this->uri->segment(4));
             $appInfo = $this->loginCore($usuario,$contrasena);
             if($appInfo != false){
                 $this->initCore($appInfo);
+                $this->load->model("usuario");
+                $usuarios = $this->usuario->get_all_usuarios();
+                var_dump($usuarios);
             }else{
+                echo "hubo un error al recuperar la información del usuario";
                 return false;
             }
         }
 
         function initCore($appInfo){
             $db['hostname'] = 'localhost';
-            $db['username'] = $appInfo["db_usuario"];
-            $db['password'] = $appInfo["db_contrasena"];
-            $db['database'] = $appInfo["db_base"];
+            $db['username'] = $appInfo->db_usuario;
+            $db['password'] = $appInfo->db_contrasena;
+            $db['database'] = $appInfo->db_base;
             $db['hostname'] = 'localhost';
             $db['dbdriver'] = 'mysql';
             $db['dbprefix'] = '';
@@ -51,8 +55,18 @@ class Siguescore extends CI_Controller {
             $db['swap_pre'] = '';
             $db['autoinit'] = TRUE;
             $db['stricton'] = FALSE;
-            $this->load->database($db);
-            var_dump($db);
+
+            $conexion = $this->load->database($db,TRUE);
+
+            
+            $CI =& get_instance();
+            $CI->app=$conexion;
+
+
+            global $conexion;
+            $conexion = $this->load->database($db,TRUE);
+            return $conexion;
+            //var_dump($db);
             //$this->xmlrpcs->serve();
         }
 
@@ -60,6 +74,7 @@ class Siguescore extends CI_Controller {
          * Esta función es para hacer el login de la aplicación en el core, no el login del usuario en la aplicación
          */
         function loginCore($user,$password){
+            echo "$user - $password <br>";
             $usuarioCore = $this->db->get_where("sigues",array("usuario"=>$user,"contrasena"=>$password))->result();
             return (sizeof($usuarioCore)>0) ? $usuarioCore[0] : false;
         }
