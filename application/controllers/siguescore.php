@@ -4,19 +4,13 @@ class Siguescore extends CI_Controller {
 
 	function index()
 	{
+                $this->load->library("xmlrpcs");
+                $this->load->library("xmlrpc");
 		$config['functions']['Greetings'] = array('function' => 'Siguescore.process');
 		$config['functions']['getUsuarioByUserPass'] = array('function' => 'Siguescore.getUsuarioByUserPass');
-		$config['debug'] = true;
+		//$config['debug'] = true;
                 $this->xmlrpcs->initialize($config);
-		$parameters = $request->output_parameters();
-                $user=$parameters[sizeof($parameters)-2];
-                $pass=$parameters[sizeof($parameters)-1];
-                $appInfo = $this->loginCore($user,$pass);
-                if($appInfo != false){
-                    $this->initCore($appInfo);
-                }else{
-                    return false;
-                }
+		$this->xmlrpcs->serve();
 	}
 
         /*
@@ -55,17 +49,11 @@ class Siguescore extends CI_Controller {
             $db['swap_pre'] = '';
             $db['autoinit'] = TRUE;
             $db['stricton'] = FALSE;
-
             $conexion = $this->load->database($db,TRUE);
-
             
             $CI =& get_instance();
             $CI->app=$conexion;
 
-
-            global $conexion;
-            $conexion = $this->load->database($db,TRUE);
-            return $conexion;
             //var_dump($db);
             //$this->xmlrpcs->serve();
         }
@@ -73,10 +61,23 @@ class Siguescore extends CI_Controller {
         /*
          * Esta función es para hacer el login de la aplicación en el core, no el login del usuario en la aplicación
          */
-        function loginCore($user,$password){
-            echo "$user - $password <br>";
-            $usuarioCore = $this->db->get_where("sigues",array("usuario"=>$user,"contrasena"=>$password))->result();
-            return (sizeof($usuarioCore)>0) ? $usuarioCore[0] : false;
+        function loginCore($request){
+            $parameters = $request->output_parameters();
+            $user=$parameters[sizeof($parameters)-2];
+            $pass=$parameters[sizeof($parameters)-1];
+            
+            //echo "$user - $password <br>";
+            $usuarioCore = $this->db->get_where("sigues",array("usuario"=>$user,"contrasena"=>$pass))->result();
+//            return (sizeof($usuarioCore)>0) ? $usuarioCore[0] : false;
+            
+            if(sizeof($usuarioCore)>0){
+                $this->initCore($usuarioCore[0]);
+                return $usuarioCore[0];
+            }else{
+                $this->xmlrpc->send_error_message('100', 'Invalid Access');
+            }
+            
+            
         }
 
 	function process($request)
@@ -95,11 +96,43 @@ class Siguescore extends CI_Controller {
 		return $this->xmlrpc->send_response($response);
 	}
 
-        function getUsuarioByUserPass(){
-            $parameters = $request->output_parameters();
+        function getUsuarioByUserPass($request){
             
-
+            $appInfo = $this->loginCore($request);
+            $this->load->model("usuario");
+            $usuarios = $this->usuario->get_all_usuarios();
+            $response = convert_to_xmlrpc_values($usuarios);
+            return $this->xmlrpc->send_response($response);
 
         }
+        
+        
 }
 
+function convert_to_xmlrpc_values($obj)
+    {
+        $return = $obj;
+        $type = 'string';
+        
+        if (is_object($obj)) {
+            $return = (array) $obj;
+            $type = 'struct';
+        } elseif (is_numeric($obj)) {
+            $type = 'int';    
+        } elseif (is_bool($obj)) {
+            $type = 'bool';    
+        } elseif (is_array($obj)) {
+            $each = array();
+            foreach ($obj as $key => $value) {
+                if (is_object($value)) {
+                    $each[$key] = convert_to_xmlrpc_values($value);
+                } else {
+                    $each[$key] = $value;    
+                }
+            }
+            $return = $each;
+            $type = 'array';
+        }
+        
+        return array($return, $type);
+    } 
