@@ -8,7 +8,7 @@ class Siguescore extends CI_Controller {
                 $this->load->library("xmlrpc");
 		$config['functions']['Greetings'] = array('function' => 'Siguescore.process');
 		$config['functions']['getUsuarioByUserPass'] = array('function' => 'Siguescore.getUsuarioByUserPass');
-		//$config['debug'] = true;
+	//	$config['debug'] = true;
                 $this->xmlrpcs->initialize($config);
 		$this->xmlrpcs->serve();
 	}
@@ -25,7 +25,6 @@ class Siguescore extends CI_Controller {
                 $this->initCore($appInfo);
                 $this->load->model("usuario");
                 $usuarios = $this->usuario->get_all_usuarios();
-                var_dump($usuarios);
             }else{
                 echo "hubo un error al recuperar la información del usuario";
                 return false;
@@ -49,6 +48,7 @@ class Siguescore extends CI_Controller {
             $db['swap_pre'] = '';
             $db['autoinit'] = TRUE;
             $db['stricton'] = FALSE;
+           
             $conexion = $this->load->database($db,TRUE);
             
             $CI =& get_instance();
@@ -68,8 +68,7 @@ class Siguescore extends CI_Controller {
             
             //echo "$user - $password <br>";
             $usuarioCore = $this->db->get_where("sigues",array("usuario"=>$user,"contrasena"=>$pass))->result();
-//            return (sizeof($usuarioCore)>0) ? $usuarioCore[0] : false;
-            
+
             if(sizeof($usuarioCore)>0){
                 $this->initCore($usuarioCore[0]);
                 return $usuarioCore[0];
