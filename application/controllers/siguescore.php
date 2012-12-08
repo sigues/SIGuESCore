@@ -96,16 +96,23 @@ class Siguescore extends CI_Controller {
 	}
 
         function getUsuarioByUserPass($request){
-            
+            var_dump($request);die();
             $appInfo = $this->loginCore($request);
             $this->load->model("usuario");
-            $usuarios = $this->usuario->get_all_usuarios();
+            $usuarios = $this->usuario->getUsuarioByUserPass();
             $response = convert_to_xmlrpc_values($usuarios);
             return $this->xmlrpc->send_response($response);
 
         }
         
-        
+        function getAllUsuarios(){
+            $appInfo = $this->loginCore($request);
+            $this->load->model("usuario");
+            $usuarios = $this->usuario->get_all_usuarios();
+            $response = convert_to_xmlrpc_values($usuarios);
+            return $this->xmlrpc->send_response($response);
+            
+        }
 }
 
 function convert_to_xmlrpc_values($obj)
