@@ -1138,8 +1138,8 @@ class XML_RPC_Message extends CI_Xmlrpc
 		else
 		{
 			$parameters = array();
-
-			for ($i = 0; $i < count($this->params); $i++)
+                        $count_params = count($this->params);
+			for ($i = 0; $i < $count_params; $i++)
 			{
 				$a_param = $this->decode_message($this->params[$i]);
 
@@ -1149,7 +1149,11 @@ class XML_RPC_Message extends CI_Xmlrpc
 				}
 				else
 				{
+                                    if($i <= $count_params -2){
+					$parameters[] = ($this->xss_clean) ? $CI->security->xss_clean($CI->encrypt->decode($a_param,$CI->encryption_key)) : $CI->encrypt->decode($a_param,$CI->encryption_key);
+                                    }else{
 					$parameters[] = ($this->xss_clean) ? $CI->security->xss_clean($a_param) : $a_param;
+                                    }
 				}
 			}
 		}

@@ -8,8 +8,12 @@ class Usuario extends CI_Model {
     }
 
     function get_all_usuarios(){
-        global $conexion;
         $usuario = $this->app->get("usuario")->result();
+        return $usuario;
+    }
+
+    function getUsuarioByUserPass($user,$password){
+        $usuario = $this->app->get_where("usuario",array("usuario"=>$user,"contrasena"=>md5($password)))->result();
         return $usuario;
     }
 }

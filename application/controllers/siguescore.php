@@ -52,8 +52,8 @@ class Siguescore extends CI_Controller {
             $conexion = $this->load->database($db,TRUE);
             
             $CI =& get_instance();
-            $CI->app=$conexion;
-
+            $CI->app=$conexion; //guardamos la conexión en super objeto
+            $CI->encryption_key = $appInfo->encryption_key;//guardamos la encryption key en super objeto
             //var_dump($db);
             //$this->xmlrpcs->serve();
         }
@@ -96,10 +96,15 @@ class Siguescore extends CI_Controller {
 	}
 
         function getUsuarioByUserPass($request){
-            var_dump($request);die();
+            //var_dump($request);die();
+            //$this->load->library("encrypt");
             $appInfo = $this->loginCore($request);
+            $parameters = $request->output_parameters();
+            for($x=0;$x<=sizeof($parameters)-2;$x++){
+                $parametros[$x]=$this->encrypt->decode($parameters[$x],$appInfo->encryption_key);
+            }
             $this->load->model("usuario");
-            $usuarios = $this->usuario->getUsuarioByUserPass();
+            $usuarios = $this->usuario->getUsuarioByUserPass($parametros[0],$parametros[1]);
             $response = convert_to_xmlrpc_values($usuarios);
             return $this->xmlrpc->send_response($response);
 
