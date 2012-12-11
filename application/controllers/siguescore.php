@@ -65,10 +65,7 @@ class Siguescore extends CI_Controller {
             $parameters = $request->output_parameters();
             $user=$parameters[sizeof($parameters)-2];
             $pass=$parameters[sizeof($parameters)-1];
-            
-            //echo "$user - $password <br>";
             $usuarioCore = $this->db->get_where("sigues",array("usuario"=>$user,"contrasena"=>$pass))->result();
-
             if(sizeof($usuarioCore)>0){
                 $this->initCore($usuarioCore[0]);
                 return $usuarioCore[0];
@@ -99,10 +96,7 @@ class Siguescore extends CI_Controller {
             //var_dump($request);die();
             //$this->load->library("encrypt");
             $appInfo = $this->loginCore($request);
-            $parameters = $request->output_parameters();
-            for($x=0;$x<=sizeof($parameters)-2;$x++){
-                $parametros[$x]=$this->encrypt->decode($parameters[$x],$appInfo->encryption_key);
-            }
+            $parametros = $request->output_parameters();
             $this->load->model("usuario");
             $usuarios = $this->usuario->getUsuarioByUserPass($parametros[0],$parametros[1]);
             $response = convert_to_xmlrpc_values($usuarios);
